@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<title>Sistem Topup CyberSecure</title>
+
+<style>
+    /* Latar cyber security */
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial;
+        color: white;
+        background: url("https://i.ibb.co/WVdF3Jx/cyber-bg.jpg") center/cover fixed;
+    }
+
+    /* Lapisan gelap untuk baca teks dengan jelas */
+    .overlay {
+        background: rgba(0,0,0,0.75);
+        padding: 20px;
+        min-height: 100vh;
+    }
+
+    /* Kotak UI */
+    .card {
+        background: rgba(20,20,20,0.8);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 1px solid #0ff;
+        animation: glow 2s infinite alternate;
+    }
+
+    /* Animasi border */
+    @keyframes glow {
+        from { box-shadow: 0 0 5px #0ff; }
+        to { box-shadow: 0 0 15px #0ff; }
+    }
+
+    button {
+        padding: 10px;
+        width: 100%;
+        border: none;
+        border-radius: 8px;
+        background: #00ffaa;
+        cursor: pointer;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background: #00cc88;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 6px;
+        border: none;
+    }
+
+    h2 { margin-top: 0; }
+</style>
+</head>
+
+<body>
+<div class="overlay">
+
+<!-- LOGIN SECTION -->
+<div class="card" id="loginSection">
+    <h2>Log Masuk</h2>
+    <p>Masukkan nama pengguna</p>
+    <input id="loginUser" placeholder="Nama pengguna">
+    <button onclick="login()">Masuk</button>
+</div>
+
+<!-- WALLET + TOPUP SECTION -->
+<div class="card" id="mainSection" style="display:none;">
+    <h2>Wallet & Pesanan</h2>
+
+    <p>Nama: <span id="userDisplay"></span></p>
+    <p>Baki Wallet: RM <span id="walletBalance">0</span></p>
+
+    <!-- Tambah baki wallet -->
+    <input id="addAmount" type="number" placeholder="Tambah baki (RM)">
+    <button onclick="addWallet()">Tambah ke Wallet</button>
+</div>
+
+<!-- GAME PRICE LIST -->
+<div class="card" id="priceSection" style="display:none;">
+    <h2>Senarai Harga</h2>
+
+    <!-- Harga asas topup -->
+    <ul>
+        <li>Mobile Legends – Minimum RM5</li>
+        <li>Free Fire – Minimum RM4</li>
+        <li>PUBG – Minimum RM6</li>
+    </ul>
+</div>
+
+<!-- ORDER FORM -->
+<div class="card" id="orderSection" style="display:none;">
+    <h2>Buat Pesanan</h2>
+
+    <label>Pilih Game</label>
+    <select id="gameSelect">
+        <option value="Mobile Legends">Mobile Legends</option>
+        <option value="Free Fire">Free Fire</option>
+        <option value="PUBG">PUBG</option>
+    </select>
+
+    <label>ID / UID</label>
+    <input id="playerID" placeholder="Contoh: 12345678">
+
+    <label>Jumlah Topup (RM)</label>
+    <input id="amount" type="number" placeholder="Contoh: 10">
+
+    <label>Pilih Pembayaran</label>
+    <select id="payMethod">
+        <option value="TNG">Touch 'n Go</option>
+        <option value="Bank">Bank Transfer</option>
+        <option value="E-Wallet">E-Wallet Lain</option>
+        <option value="Wallet Saya">Wallet Saya</option>
+    </select>
+
+    <button onclick="checkout()">Bayar Sekarang</button>
+</div>
+
+<!-- ADMIN SECTION (SIMULATION) -->
+<div class="card" id="adminSection" style="display:none;">
+    <h2>Admin – Semak Pesanan</h2>
+    <div id="orderList"></div>
+</div>
+
+</div>
+
+<script>
+/* 
+   Sistem Simulasi Login, Wallet, Pesanan, Admin, WhatsApp Redirect 
+   Semuanya dilakukan dalam satu fail .html ini sahaja.
+*/
+
+let wallet = 0;                   // Simpan baki wallet
+let currentUser = "";             // Simpan nama user
+let orders = [];                  // Simpan rekod pesanan
+
+// ---------------- LOGIN ----------------
+function login() {
+    const user = document.getElementById("loginUser").value;
+
+    if (!user) return alert("Masukkan nama dulu.");
+
+    currentUser = user;
+    document.getElementById("userDisplay").innerText = user;
+
+    // Tunjukkan bahagian utama selepas login
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("mainSection").style.display = "block";
+    document.getElementById("orderSection").style.display = "block";
+    document.getElementById("priceSection").style.display = "block";
+    document.getElementById("adminSection").style.display = "block";
+}
+
+// ---------------- WALLET ----------------
+function addWallet() {
+    const amt = Number(document.getElementById("addAmount").value);
+    if (amt <= 0) return alert("Masukkan jumlah yang sah.");
+
+    wallet += amt;
+    document.getElementById("walletBalance").innerText = wallet;
+}
+
+// ---------------- CHECKOUT ----------------
+function checkout() {
+    const game = document.getElementById("gameSelect").value;
+    const id = document.getElementById("playerID").value;
+    const amt = Number(document.getElementById("amount").value);
+    const method = document.getElementById("payMethod").value;
+
+    if (!id) return alert("Masukkan ID atau UID.");
+    if (amt < 1) return alert("Jumlah minimum RM1.");
+
+    // Jika bayar guna wallet
+    if (method === "Wallet Saya") {
+        if (wallet < amt) return alert("Baki wallet tidak mencukupi.");
+        wallet -= amt;
+        document.getElementById("walletBalance").innerText = wallet;
+    }
+
+    // Simpan pesanan
+    const order = {
+        user: currentUser,
+        game: game,
+        id: id,
+        amount: amt,
+        method: method,
+        time: new Date().toLocaleString()
+    };
+
+    orders.push(order);
+    updateAdmin();
+
+    // Hantar ke WhatsApp
+    sendToWhatsApp(order);
+}
+
+// ---------------- WHATSAPP REDIRECT ----------------
+function sendToWhatsApp(order) {
+    /* 
+       Auto hantar pesanan ke nombor WhatsApp yang diminta
+    */
+    const msg =
+`Pesanan Baru
+Nama: ${order.user}
+Game: ${order.game}
+ID: ${order.id}
+Jumlah: RM${order.amount}
+Bayaran: ${order.method}
+Masa: ${order.time}`;
+
+    const url = "https://wa.me/0145871623?text=" + encodeURIComponent(msg);
+    window.open(url, "_blank");
+}
+
+// ---------------- ADMIN VIEW ----------------
+function updateAdmin() {
+    const list = document.getElementById("orderList");
+    list.innerHTML = "";
+
+    orders.forEach(o => {
+        const div = document.createElement("div");
+        div.style.border = "1px solid #0ff";
+        div.style.padding = "10px";
+        div.style.marginTop = "10px";
+
+        div.innerHTML = `
+            Pengguna: ${o.user}<br>
+            Game: ${o.game}<br>
+            ID: ${o.id}<br>
+            Jumlah: RM${o.amount}<br>
+            Bayaran: ${o.method}<br>
+            Masa: ${o.time}
+        `;
+
+        list.appendChild(div);
+    });
+}
+</script>
+
+</body>
+</html>
